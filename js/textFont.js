@@ -10,6 +10,7 @@ class TextFont {
       .textToPoints(text, position.x, position.y, fontSize, {
         sampleFactor: (options && options.sampleFactor) || 0.3,
       })
+      // sort particles depending on their position to make text change effect easier to do
       .sort((a, b) => b.x + b.y * width - a.x - a.y * width)
       .map(
         (p) =>
@@ -25,6 +26,9 @@ class TextFont {
       .mult(-1);
   }
 
+  /**
+   * Show the text to the canvas
+   */
   show() {
     push();
     if (!this.options || this.options.centerMode !== false)
@@ -35,16 +39,27 @@ class TextFont {
     pop();
   }
 
+  /**
+   * Update state (particle's position and velocity)
+   */
   update() {
     for (const point of this.particles) {
       point.update();
     }
   }
 
+  /**
+   * Change particle's radius
+   * @param {number} radius The new radius
+   */
   setParticleRadius(radius) {
     this.particles.forEach((p) => (p.radius = radius));
   }
 
+  /**
+   * Change the text and apply the effect
+   * @param {string} text The new text
+   */
   setText(text) {
     if (text !== this.text) {
       this.text = text;
