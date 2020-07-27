@@ -10,7 +10,7 @@ class TextFont {
       .textToPoints(text, position.x, position.y, fontSize, {
         sampleFactor: (options && options.sampleFactor) || 0.3,
       })
-      // sort particles depending on their position to make text change effect easier to do
+      // sort particles depending on their position to make text change effect easier to deal with
       .sort((a, b) => b.x + b.y * width - a.x - a.y * width)
       .map(
         (p) =>
@@ -19,6 +19,8 @@ class TextFont {
             radius: this.particleRadius,
           })
       );
+
+    // Compute the offset from the center of the text
     this.offset = this.particles
       .reduce((p, { target: c }) => p5.Vector.add(p, c), createVector())
       .div(this.particles.length)
@@ -63,6 +65,8 @@ class TextFont {
   setText(text) {
     if (text !== this.text) {
       this.text = text;
+
+      // Compute the next array of particles
       const particles = font
         .textToPoints(text, this.position.x, this.position.y, fontSize, {
           sampleFactor: (this.options && this.options.sampleFactor) || 0.3,
@@ -75,23 +79,24 @@ class TextFont {
               radius: this.particleRadius,
             })
         );
+
+      // Recompute the center offset
       this.offset = particles
         .reduce((p, { target: c }) => p5.Vector.add(p, c), createVector())
         .div(particles.length)
         .sub(this.position)
         .mult(-1);
-      if (particles.length > this.particles.length) {
-        const lastParticle = this.particles[this.particles.length - 1];
-        const toBeAdded = particles.length - this.particles.length;
-        for (let i = 0; i < toBeAdded; i++) {
-          this.particles.push(Particle.clone(lastParticle));
-        }
-      } else {
-        this.particles.splice(particles.length);
+
+      const lastParticle = this.particles[this.particles.length - 1];
+
+      // Refresh each particle's target position
+      for (let i = 0; i < particles.length; i++) {
+        this.particles[i] = this.particles[i] || lastParticle.clone();
+        this.particles[i].setTarget(particles[i].target);
       }
-      this.particles.forEach(
-        (particle, i) => (particle.target = particles[i].target)
-      );
+
+      // Remove unnecessary particles
+      this.particles.splice(particles.length);
     }
   }
 }
